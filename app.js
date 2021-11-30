@@ -7,10 +7,8 @@ const xhr = new XMLHttpRequest;
 xhr.open('get', 'https://jsonplaceholder.typicode.com/users')
 xhr.send();
  
-let users = [];
- 
 xhr.addEventListener('load', () => {
-    users = getUsers(xhr.responseText);
+    users = getResponse(xhr.responseText);
     renderUsers(users);
 });
  
@@ -35,17 +33,24 @@ usersListContainer.addEventListener('DOMNodeInserted', e => {
 btnAddUser.addEventListener('click', ()=>{
   renderUserAddBlock();
 })
+
+userInfoContainer.addEventListener('click', e => {
+  if(!e.target.classList.contains('btn')) { return }
+  e.preventDefault();
+  submitForm();
+})
  
 //Functions
-function getUsers(request) {
-    const users = JSON.parse(request)
-    return users;
+function getResponse(json) {
+    const response = JSON.parse(json)
+    return response;
 }
  
 function renderUsers(users) {
     const fragment = document.createDocumentFragment();
     const list = document.createElement('div');
     list.classList.add('list-group','list-group-flush')
+    
     users.forEach(user => {
         const listItem = document.createElement('button');
         listItem.classList.add('list-group-item', 'list-group-item-action')
@@ -57,8 +62,7 @@ function renderUsers(users) {
 }
  
 function renderUserInfoBlock(user) {
-    clearUserInfoContainer();
-
+    clearContainer(userInfoContainer);
 
     const card = document.createElement('div');
     card.classList.add('card');
@@ -84,12 +88,12 @@ function renderUserInfoBlock(user) {
 }
 
 function renderUserAddBlock() {
-  clearUserInfoContainer();
+  clearContainer(userInfoContainer);
   const card = document.createElement('div');
   card.classList.add('card')
   card.insertAdjacentHTML('afterbegin', `
 
-  <form class="">
+  <form name="user">
 
     <div class="card-header h5">
       New User
@@ -98,33 +102,33 @@ function renderUserAddBlock() {
     <div class="card-body">
       
       <div class="col-12">
-        <label for="validationDefault01" class="form-label">Name</label>
-        <input type="text" class="form-control" id="validationDefault01" value="Mark" required>
+        <label for="validationDefault01" class="form-label">Full Name</label>
+        <input type="text" name="name" class="form-control" id="validationDefault01" value="Mark Graber" required>
       </div>
 
       <div class="col-12">
         <label for="validationDefault02" class="form-label">Nickname</label>
-        <input type="text" class="form-control" id="validationDefault02" value="Otto" required>
+        <input type="text" name="nickname" class="form-control" id="validationDefault02" value="Otto" required>
       </div>
 
       <div class="col-12">
         <label for="validationDefault03" class="form-label">Email</label>
-        <input type="email" class="form-control" id="validationDefault03" value="example@email.com" required>
+        <input type="email" name="email" class="form-control" id="validationDefault03" value="example@email.com" required>
       </div>
 
       <div class="col-12">
         <label for="validationDefault04" class="form-label">Website</label>
-        <input type="text" class="form-control" id="validationDefault04" value="email.com" required>
+        <input type="text" name="website" class="form-control" id="validationDefault04" value="email.com" required>
       </div>
       
       <div class="col-12">
         <label for="validationDefault05" class="form-label">City</label>
-        <input type="text" class="form-control" id="validationDefault05" value="Moscow" required>
+        <input type="text" name="city" class="form-control" id="validationDefault05" value="Moscow" required>
       </div>
 
       <div class="col-12">
         <label for="validationDefault06" class="form-label">Phone</label>
-        <input type="tel" class="form-control" id="validationDefault06" value="+7(924)222-11-22" required>
+        <input type="tel" name="phone" class="form-control" id="validationDefault06" value="+7(924)222-11-22" required>
       </div>
         
     </div>
@@ -151,12 +155,32 @@ function activeItem(target) {
   target.classList.add('active')
 }
 
-function clearUserInfoContainer() {
-  if(userInfoContainer.firstElementChild) {
-    userInfoContainer.firstElementChild.remove();
-}
+function clearContainer(container) {
+  if(container.firstElementChild) {
+    container.firstElementChild.remove();
+  }
 }
 
-function changeCounter(count) {
+function submitForm() {
+  const userForm = document.forms.user.elements;
+  const userObj = {
+    name: userForm.name.value,
+    nickname: userForm.nickname.value,
+    email: userForm.email.value,
+    website: userForm.website.value,
+    city: userForm.city.value,
+    phone: userForm.phone.value,
+  };
 
+  const xhr = new XMLHttpRequest;
+  xhr.open('post', 'https://jsonplaceholder.typicode.com/users')
+  xhr.setRequestHeader('Content-type', 'application/json; charset=UTF-8');
+  xhr.send(JSON.stringify(userObj));
+
+  xhr.addEventListener('load', () => {
+    user = getResponse(xhr.responseText);
+    users.unshift(user);
+    clearContainer(usersListContainer);
+    renderUsers(users);
+  });
 }
